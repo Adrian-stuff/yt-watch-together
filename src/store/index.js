@@ -3,9 +3,11 @@ import { createStore } from "vuex";
 export default createStore({
   state: {
     isConnected: false,
+    isAdmin: false,
     username: localStorage.getItem("username") || "",
     videoID: "",
-    playStatus: undefined,
+    playStatus: null,
+    users: [],
   },
   mutations: {
     SET_USERNAME(state, username) {
@@ -16,8 +18,13 @@ export default createStore({
       state.isConnected = true;
     },
     SOCKET_JOINROOM(state, data) {
-      state.videoID = data;
-      console.log(data);
+      state.videoID = data.videoID;
+      state.isAdmin = data.isAdmin;
+      console.log("joinRoom:", data);
+    },
+    SOCKET_USERJOINED(state, data) {
+      state.users = [...state.users, data.username];
+      console.log("userJoined", data);
     },
     SOCKET_SETVIDEODATA(state, data) {
       console.log(data);

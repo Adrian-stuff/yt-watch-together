@@ -9,6 +9,7 @@
 </template>
 
 <script>
+// import { socket } from "../main.js";
 export default {
   name: "Home",
   components: {},
@@ -25,6 +26,11 @@ export default {
       this.$router.push(`/room/${this.roomID}`);
       console.log(this.username, this.roomID);
     },
+  },
+  mounted() {
+    if (this.$store.state.isConnected) {
+      this.$socket.client.emit("leaveRoom");
+    }
   },
 };
 </script>
