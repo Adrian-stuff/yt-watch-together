@@ -1,42 +1,118 @@
 <template>
-  <div>
-    <Youtube
-      :src="videoID"
-      @ready="onReady"
-      @state-change="onStateChange"
-      :vars="{
-        autoplay: 0,
-        modestbranding: 1,
-        playsinline: 1,
-        rel: 0,
-        disablekb: 1,
-      }"
-      ref="youtube"
-    ></Youtube>
-    <button @click="playVideo()">PLAY</button>
-    <h1>room: {{ roomID }}</h1>
-    <form @submit="onSetVideoID">
-      <input type="text" v-model="setVideoID" />
-      <button type="submit">setVideo</button>
-    </form>
+  <div class="flex sm:flex-row flex-col justify-center my-1 ">
+    <div class="my-0">
+      <div class="flex flex-col justify-center items-center">
+        <form
+          @submit="onSetVideoID"
+          class="flex flex-row justify-center items-center"
+        >
+          <input
+            type="text"
+            class="border-2 rounded px-2 py-1 my-2 mx-1  w-52 "
+            v-model="inputVideoID"
+            placeholder="Video ID/Link"
+          />
+          <Button
+            class="text-sm px-2 py-1.5"
+            @button-click="onSetVideoID"
+            text="Set Video"
+          />
+        </form>
+      </div>
+      <div class="max-w-full">
+        <Youtube
+          :src="videoID"
+          class="max-w-full max-h-max"
+          @ready="onReady"
+          @state-change="onStateChange"
+          :vars="{
+            autoplay: 0,
+            modestbranding: 1,
+            playsinline: 1,
+            rel: 0,
+            disablekb: 1,
+          }"
+          ref="youtube"
+        ></Youtube>
+        <h1 class="text-lg my-2 ml-2">Room: {{ roomID }}</h1>
+        <div class="flex justify-center">
+          <Button
+            class="px-2 py-1.5 mb-1"
+            @button-click="showModal = true"
+            text="Search for Videos"
+          />
+        </div>
+      </div>
+    </div>
+    <Messages />
+    <Modal v-if="showModal" @close="closeModal()">
+      <template v-slot:header>
+        <div class="flex justify-around">
+          <form @submit.prevent="searchVideo" class="mr-2">
+            <Input
+              class="p-1 border-2 rounded max-w-screen-sm"
+              v-model:value="searchVal"
+              placeholder="Search"
+            />
+            <button type="submit" class="ml-2">Search</button>
+          </form>
+          <button @click="closeModal()" class="">
+            X
+          </button>
+        </div>
+      </template>
+      <template v-slot:body>
+        <div style="max-height: 500px" class="flex flex-col overflow-y-auto ">
+          <div
+            v-for="data in searchResults"
+            :key="data.etag"
+            class="flex my-2 justify-center max-w-md mx-auto"
+          >
+            <div v-if="data.id.kind !== 'youtube#channel'">
+              <button class="text-left" @click="setVideoID(data.id.videoId)">
+                <img
+                  :src="data.snippet.thumbnails.medium.url"
+                  :alt="data.snippet.title"
+                  class="mx-auto"
+                />
+                <div class="flex flex-col ">
+                  <h1 v-html="data.snippet.title" class="font-bold"></h1>
+                  <p class="">{{ data.snippet.channelTitle }}</p>
+                  <p>videoID: {{ data.id.videoId }}</p>
+                </div>
+              </button>
+            </div>
+
+            <div v-else></div>
+          </div>
+        </div>
+      </template>
+    </Modal>
   </div>
 </template>
 <script>
 import { mapState } from "vuex";
+import Button from "../components/Button.vue";
+import Messages from "../components/Messages.vue";
+import Modal from "../components/Modal.vue";
+import Input from "../components/Input.vue";
 export default {
   name: "Room",
+  components: { Button, Messages, Modal, Input },
   data() {
     return {
       isPlayerReady: false,
-      setVideoID: undefined,
-      videoID: "XA2YEHn-A8Q",
+      // videoID: this.VideoID || ,
+      inputVideoID: "XA2YEHn-A8Q",
       roomID: this.$route.params.roomID,
       username: this.$store.state.username,
-      isAdmin: this.$store.state.isAdmin,
       isUpdated: false,
       lastStatus: null,
       secondLastStatus: null,
       isStartedBySelf: true,
+      showModal: false,
+      searchVal: "",
+      searchResults: [],
     };
   },
   methods: {
@@ -44,10 +120,6 @@ export default {
       this.isPlayerReady = true;
       console.log("player ready");
     },
-    playVideo() {
-      this.player.playVideo();
-    },
-
     cueVideo(id) {
       if (this.videoID === id) return;
       console.log("????", id);
@@ -55,10 +127,17 @@ export default {
     },
     onSetVideoID(e) {
       e.preventDefault();
-      let data = { videoID: this.setVideoID };
+      let data = { videoID: this.inputVideoID };
       this.$socket.client.emit("setVideoData", data, (e) => {
         console.log(e);
       });
+    },
+    setVideoID(videoID) {
+      let data = { videoID: videoID };
+      this.$socket.client.emit("setVideoData", data, (e) => {
+        console.log(e);
+      });
+      this.closeModal();
     },
     sendPlayerStatus(status, time) {
       let data = { status, time };
@@ -104,7 +183,7 @@ export default {
       const clearTimer = () => clearInterval(timer);
       const timer = setInterval(() => {
         // eslint-disable-next-line no-undef
-        if (this.player && this.player.getPlayerState() != undefined && YT) {
+        if (this.player && this.player.getPlayerState() != undefined) {
           const playerState = this.player.getPlayerState();
           // eslint-disable-next-line no-undef
           if (playerState === YT.PlayerState.CUED || playerState === -1) {
@@ -156,13 +235,40 @@ export default {
         }
       }
     },
+    searchVideo() {
+      // console.log("hello", process.env.VUE_APP_API_KEY);
+      // fetch(
+      //   `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${this.searchVal}&key=${process.env.VUE_APP_API_KEY}`
+      // )
+      //   .then((res) => res.json())
+      //   .then((data) => {
+      //     console.log(data);
+      //   });
+      fetch(`https://dogewatch.herokuapp.com/search?q=${this.searchVal}`)
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data);
+          console.log(data.items);
+          this.searchResults = data.items;
+        });
+    },
+    closeModal() {
+      console.log("closing..");
+      this.showModal = false;
+      this.searchResults = [];
+    },
   },
   computed: mapState({
+    isAdmin: (state) => state.isAdmin,
     player() {
       return this.$refs.youtube;
     },
+    videoID: (state) => state.videoID,
   }),
   mounted() {
+    if (this.username == null || this.roomID == null) {
+      this.$router.push("/");
+    }
     this.$nextTick(() => {
       let data = { room: this.roomID, username: this.username };
       this.$socket.client.emit("joinRoom", data, (e) => {
@@ -171,6 +277,7 @@ export default {
       this.unsubscribe = this.$store.subscribe((mutation, state) => {
         if (mutation.type === "SOCKET_SETVIDEODATA") {
           console.log(`Updating to ${state.videoID}`);
+          this.inputVideoID = state.videoID;
           this.cueVideo(state.videoID);
         }
         if (mutation.type === "SOCKET_PLAYSTATUS") {
@@ -181,10 +288,10 @@ export default {
           console.log(`Updating to ${state.isAdmin}`);
           console.log(`Updating to ${state.playerStatus}`);
 
-          if (!state.isAdmin) {
-            this.cueVideo(state.videoID);
-            console.log("initial state set.");
-          }
+          // if (!state.isAdmin) {
+          //   this.cueVideo(state.videoID);
+          //   console.log("initial state set.");
+          // }
         }
         if (mutation.type === "SOCKET_USERJOINED") {
           console.log(`USERJOINED ${state.users}`);
@@ -193,6 +300,7 @@ export default {
           }
           if (!state.isAdmin) {
             this.changePlayerStatus(state.playStatus);
+            this.cueVideo(state.videoID);
           }
         }
       });

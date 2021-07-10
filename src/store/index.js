@@ -4,10 +4,10 @@ export default createStore({
   state: {
     isConnected: false,
     isAdmin: false,
-    username: localStorage.getItem("username") || "",
+    username: localStorage.getItem("username") || undefined,
     videoID: "",
     playStatus: null,
-    users: [],
+    messages: [],
   },
   mutations: {
     SET_USERNAME(state, username) {
@@ -23,8 +23,13 @@ export default createStore({
       console.log("joinRoom:", data);
     },
     SOCKET_USERJOINED(state, data) {
-      state.users = [...state.users, data.username];
-      console.log("userJoined", data);
+      state.messages = [
+        ...state.messages,
+        {
+          user: "System",
+          message: `${data.username} joined the room.`,
+        },
+      ];
     },
     SOCKET_SETVIDEODATA(state, data) {
       console.log(data);
@@ -32,6 +37,17 @@ export default createStore({
     },
     SOCKET_PLAYSTATUS(state, data) {
       state.playStatus = data;
+    },
+    SOCKET_SETNEWADMIN(state, data) {
+      if (state.username === data.username) {
+        state.isAdmin = data.isAdmin;
+      }
+    },
+    SOCKET_CHATMESSAGE(state, data) {
+      state.messages = [...state.messages, data];
+    },
+    CLEARMESSAGES(state) {
+      state.messages = [];
     },
   },
   actions: {
@@ -54,6 +70,13 @@ export default createStore({
     socket_playStatus({ commit }, data) {
       console.log("playStatus", data);
       commit("SOCKET_PLAYSTATUS", data);
+    },
+    socket_setNewAdmin({ commit }, data) {
+      console.log("setNewAdmin", data);
+      commit("SOCKET_SETNEWADMIN", data);
+    },
+    clearMessages({ commit }) {
+      commit("CLEARMESSAGES");
     },
   },
   modules: {},
