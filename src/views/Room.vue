@@ -1,5 +1,7 @@
 <template>
-  <div class="flex sm:flex-row flex-col justify-center my-1 ">
+  <h1 v-if="!player" class="text-center text-4xl font-bold my-4">Loading</h1>
+
+  <div v-else class="flex sm:flex-row flex-col justify-center my-1 ">
     <div class="my-0">
       <div class="flex flex-col justify-center items-center">
         <form
