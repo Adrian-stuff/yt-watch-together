@@ -1,7 +1,9 @@
 <template>
-  <h1 v-if="!player" class="text-center text-4xl font-bold my-4">Loading</h1>
+  <h1 v-if="!isPlayerReady" class="text-center text-4xl font-bold my-4">
+    Loading... please reload after loading
+  </h1>
 
-  <div v-else class="flex sm:flex-row flex-col justify-center my-1 ">
+  <div class="flex sm:flex-row flex-col justify-center sm:items-center my-1 ">
     <div class="my-0">
       <div class="flex flex-col justify-center items-center">
         <form
@@ -27,6 +29,7 @@
           class="max-w-full max-h-max"
           @ready="onReady"
           @state-change="onStateChange"
+          @error="onPlayerError($event)"
           :vars="{
             autoplay: 0,
             modestbranding: 1,
@@ -78,8 +81,13 @@
                   class="mx-auto"
                 />
                 <div class="flex flex-col ">
-                  <h1 v-html="data.snippet.title" class="font-bold"></h1>
-                  <p class="">{{ data.snippet.channelTitle }}</p>
+                  <h1
+                    v-html="data.snippet.title"
+                    class="font-bold text-lg"
+                  ></h1>
+                  <p class="font-bold text-sm">
+                    {{ data.snippet.channelTitle }}
+                  </p>
                   <p>videoID: {{ data.id.videoId }}</p>
                 </div>
               </button>
@@ -121,6 +129,10 @@ export default {
     onReady() {
       this.isPlayerReady = true;
       console.log("player ready");
+    },
+    onPlayerError(error) {
+      console.log("PLAYER ERROR!!!", error);
+      window.location.reload();
     },
     cueVideo(id) {
       if (this.videoID === id) return;
@@ -245,7 +257,7 @@ export default {
       //   .then((res) => res.json())
       //   .then((data) => {
       //     console.log(data);
-      //   });
+      //   });https://dogewatch.herokuapp.com/
       fetch(`https://dogewatch.herokuapp.com/search?q=${this.searchVal}`)
         .then((res) => res.json())
         .then((data) => {
@@ -276,6 +288,7 @@ export default {
       this.$socket.client.emit("joinRoom", data, (e) => {
         console.log(e);
       });
+
       this.unsubscribe = this.$store.subscribe((mutation, state) => {
         if (mutation.type === "SOCKET_SETVIDEODATA") {
           console.log(`Updating to ${state.videoID}`);

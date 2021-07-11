@@ -8,6 +8,7 @@ export default createStore({
     videoID: "",
     playStatus: null,
     messages: [],
+    rooms: [],
   },
   mutations: {
     SET_USERNAME(state, username) {
@@ -48,6 +49,10 @@ export default createStore({
     },
     CLEARMESSAGES(state) {
       state.messages = [];
+    },
+    SOCKET_GETALLROOMS(state, data) {
+      // console.log("rooms: ", data);
+      state.rooms = data;
     },
   },
   actions: {

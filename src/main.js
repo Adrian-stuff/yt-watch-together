@@ -8,6 +8,12 @@ import { io } from "socket.io-client";
 import "./index.css";
 // "http://localhost:8000"
 //http://192.168.1.6:8000/
+//https://dogewatch.herokuapp.com/
+// const socket = io("https://dogewatch.herokuapp.com/", {
+//   reconnection: true,
+//   reconnectionAttempts: 5,
+//   reconnectionDelay: 1000,
+// });
 const socket = io("https://dogewatch.herokuapp.com/", {
   reconnection: true,
   reconnectionAttempts: 5,
