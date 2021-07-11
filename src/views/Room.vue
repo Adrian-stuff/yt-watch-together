@@ -1,13 +1,12 @@
 <template>
   <h1 v-if="!isPlayerReady" class="text-center text-4xl font-bold my-4">
-    Loading... please reload after loading
+    Loading...
   </h1>
-
   <div class="flex sm:flex-row flex-col justify-center sm:items-center my-1 ">
     <div class="my-0">
       <div class="flex flex-col justify-center items-center">
         <form
-          @submit="onSetVideoID"
+          @submit.prevent="onSetVideoID"
           class="flex flex-row justify-center items-center"
         >
           <input
@@ -34,12 +33,13 @@
             autoplay: 0,
             modestbranding: 1,
             playsinline: 1,
-            rel: 0,
             disablekb: 1,
           }"
           ref="youtube"
         ></Youtube>
+
         <h1 class="text-lg my-2 ml-2">Room: {{ roomID }}</h1>
+        <p class="ml-2">please reload if you encountered iframe issues</p>
         <div class="flex justify-center">
           <Button
             class="px-2 py-1.5 mb-1"
@@ -113,7 +113,8 @@ export default {
     return {
       isPlayerReady: false,
       // videoID: this.VideoID || ,
-      inputVideoID: "XA2YEHn-A8Q",
+      inputVideoID: this.videoID,
+      // setToYT: this.$store.state.videoID,
       roomID: this.$route.params.roomID,
       username: this.$store.state.username,
       isUpdated: false,
@@ -132,15 +133,20 @@ export default {
     },
     onPlayerError(error) {
       console.log("PLAYER ERROR!!!", error);
-      window.location.reload();
+      // window.location.reload();
     },
     cueVideo(id) {
-      if (this.videoID === id) return;
+      console.log(this.setToYT, id);
+      if (this.setToYT === id) return;
       console.log("????", id);
-      this.player.cueVideoById(id);
+      const timer = setInterval(() => {
+        this.player.cueVideoById(id);
+        clearTimer();
+      }, 500);
+      const clearTimer = () => clearInterval(timer);
     },
-    onSetVideoID(e) {
-      e.preventDefault();
+    onSetVideoID() {
+      // e.preventDefault();
       let data = { videoID: this.inputVideoID };
       this.$socket.client.emit("setVideoData", data, (e) => {
         console.log(e);
@@ -155,7 +161,9 @@ export default {
     },
     sendPlayerStatus(status, time) {
       let data = { status, time };
-      this.$socket.client.emit("playStatus", data);
+      if (this.isPlayerReady) {
+        this.$socket.client.emit("playStatus", data);
+      }
     },
     onStateChange(event) {
       if (
@@ -194,10 +202,13 @@ export default {
     changePlayerStatus(data) {
       console.log("data passed to changePlayerStatus:", data);
 
-      const clearTimer = () => clearInterval(timer);
       const timer = setInterval(() => {
         // eslint-disable-next-line no-undef
-        if (this.player && this.player.getPlayerState() != undefined) {
+        if (
+          this.player &&
+          this.player.getPlayerState() != undefined &&
+          this.isPlayerReady
+        ) {
           const playerState = this.player.getPlayerState();
           // eslint-disable-next-line no-undef
           if (playerState === YT.PlayerState.CUED || playerState === -1) {
@@ -229,10 +240,11 @@ export default {
           clearTimer();
         }
       }, 500);
+      const clearTimer = () => clearInterval(timer);
     },
     broadcastPlayerState() {
       // eslint-disable-next-line no-undef
-      if (this.player) {
+      if (this.player && this.isPlayerReady) {
         const playerState = this.player.getPlayerState();
         if (
           // eslint-disable-next-line no-undef
@@ -258,7 +270,7 @@ export default {
       //   .then((data) => {
       //     console.log(data);
       //   });https://dogewatch.herokuapp.com/
-      fetch(`https://dogewatch.herokuapp.com/search?q=${this.searchVal}`)
+      fetch(`http://192.168.1.6:8000/search?q=${this.searchVal}`)
         .then((res) => res.json())
         .then((data) => {
           console.log(data);
@@ -283,46 +295,56 @@ export default {
     if (this.username == null || this.roomID == null) {
       this.$router.push("/");
     }
-    this.$nextTick(() => {
-      let data = { room: this.roomID, username: this.username };
-      this.$socket.client.emit("joinRoom", data, (e) => {
-        console.log(e);
-      });
 
-      this.unsubscribe = this.$store.subscribe((mutation, state) => {
-        if (mutation.type === "SOCKET_SETVIDEODATA") {
-          console.log(`Updating to ${state.videoID}`);
-          this.inputVideoID = state.videoID;
-          this.cueVideo(state.videoID);
-        }
-        if (mutation.type === "SOCKET_PLAYSTATUS") {
-          console.log(`Updating to ${state.playStatus}`);
-          this.changePlayerStatus(state.playStatus);
-        }
-        if (mutation.type === "SOCKET_JOINROOM") {
-          console.log(`Updating to ${state.isAdmin}`);
-          console.log(`Updating to ${state.playerStatus}`);
-
-          // if (!state.isAdmin) {
-          //   this.cueVideo(state.videoID);
-          //   console.log("initial state set.");
-          // }
-        }
-        if (mutation.type === "SOCKET_USERJOINED") {
-          console.log(`USERJOINED ${state.users}`);
-          if (state.isAdmin) {
-            this.broadcastPlayerState();
-          }
-          if (!state.isAdmin) {
-            this.changePlayerStatus(state.playStatus);
-            this.cueVideo(state.videoID);
-          }
-        }
-      });
+    // this.$nextTick(() => {
+    let data = { room: this.roomID, username: this.username };
+    this.$socket.client.emit("joinRoom", data, (e) => {
+      console.log(e);
     });
+
+    this.unsubscribe = this.$store.subscribe((mutation, state) => {
+      if (mutation.type === "SOCKET_SETVIDEODATA") {
+        console.log(`Updating to ${state.videoID}`);
+        this.inputVideoID = state.videoID;
+        this.cueVideo(state.videoID);
+      }
+      if (mutation.type === "SOCKET_PLAYSTATUS") {
+        console.log(`Updating to ${state.playStatus}`);
+        this.changePlayerStatus(state.playStatus);
+      }
+      if (mutation.type === "SOCKET_JOINROOM") {
+        console.log(`Updating to ${state.isAdmin}`);
+        console.log(`Updating to ${state.videoID}`);
+
+        // this.cueVideo(state.videoID);
+        // if (!state.isAdmin) {
+        //   this.cueVideo(state.videoID);
+        //   console.log("initial state set.");
+        // }
+      }
+      if (mutation.type === "SOCKET_USERJOINED") {
+        console.log(`USERJOINED ${state.users}`);
+        if (state.isAdmin) {
+          this.broadcastPlayerState();
+        }
+        // else if (!state.isAdmin) {
+        //   // this.changePlayerStatus(state.playStatus);
+        //   this.cueVideo(state.videoID);
+        // }
+      }
+    });
+    // });
   },
   beforeUnmount() {
     this.unsubscribe();
+  },
+  beforeRouteLeave(to, from, next) {
+    const answer = window.confirm("Do you really want to leave?");
+    if (answer) {
+      next();
+    } else {
+      next(false);
+    }
   },
 };
 </script>

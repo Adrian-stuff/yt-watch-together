@@ -5,7 +5,7 @@ export default createStore({
     isConnected: false,
     isAdmin: false,
     username: localStorage.getItem("username") || undefined,
-    videoID: "",
+    videoID: "XA2YEHn-A8Q",
     playStatus: null,
     messages: [],
     rooms: [],
@@ -37,6 +37,7 @@ export default createStore({
       state.videoID = data.videoID;
     },
     SOCKET_PLAYSTATUS(state, data) {
+      console.log("playStatus", data);
       state.playStatus = data;
     },
     SOCKET_SETNEWADMIN(state, data) {
@@ -53,6 +54,9 @@ export default createStore({
     SOCKET_GETALLROOMS(state, data) {
       // console.log("rooms: ", data);
       state.rooms = data;
+    },
+    CLEARVIDEOID(state) {
+      state.videoID = "XA2YEHn-A8Q";
     },
   },
   actions: {
@@ -72,16 +76,19 @@ export default createStore({
       console.log("setVideoData", data);
       commit("SOCKET_SETVIDEODATA", data);
     },
-    socket_playStatus({ commit }, data) {
-      console.log("playStatus", data);
-      commit("SOCKET_PLAYSTATUS", data);
-    },
+    // socket_playStatus({ commit }, data) {
+    //   console.log("playStatus", data);
+    //   commit("SOCKET_PLAYSTATUS", data);
+    // },
     socket_setNewAdmin({ commit }, data) {
       console.log("setNewAdmin", data);
       commit("SOCKET_SETNEWADMIN", data);
     },
     clearMessages({ commit }) {
       commit("CLEARMESSAGES");
+    },
+    clearVideoId({ commit }) {
+      commit("CLEARVIDEOID");
     },
   },
   modules: {},

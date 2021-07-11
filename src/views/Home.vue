@@ -97,6 +97,7 @@ export default {
       this.$socket.client.emit("leaveRoom");
     }
     this.$store.dispatch("clearMessages");
+    this.$store.dispatch("clearVideoId");
     setInterval(() => {
       this.$socket.client.emit("getAllRooms");
     }, 2000);
