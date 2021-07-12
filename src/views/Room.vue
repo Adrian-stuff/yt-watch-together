@@ -3,7 +3,7 @@
     Loading...
   </h1>
   <div class="flex sm:flex-row flex-col justify-center sm:items-center my-1 ">
-    <div class="my-0">
+    <div class="my-0 flex flex-col">
       <div class="flex flex-col justify-center items-center">
         <form
           @submit.prevent="onSetVideoID"
@@ -22,31 +22,31 @@
           />
         </form>
       </div>
-      <div class="max-w-full">
-        <Youtube
-          :src="videoID"
-          class="max-w-full max-h-max"
-          @ready="onReady"
-          @state-change="onStateChange"
-          @error="onPlayerError($event)"
-          :vars="{
-            autoplay: 0,
-            modestbranding: 1,
-            playsinline: 1,
-            disablekb: 1,
-          }"
-          ref="youtube"
-        ></Youtube>
+      <Youtube
+        :src="videoID"
+        class="embed-container"
+        @ready="onReady"
+        @state-change="onStateChange"
+        @error="onPlayerError($event)"
+        :vars="{
+          autoplay: 0,
+          modestbranding: 1,
+          playsinline: 1,
+          disablekb: 1,
+        }"
+        ref="youtube"
+      ></Youtube>
 
+      <div>
         <h1 class="text-lg my-2 ml-2">Room: {{ roomID }}</h1>
         <p class="ml-2">please reload if you encountered iframe issues</p>
-        <div class="flex justify-center">
-          <Button
-            class="px-2 py-1.5 mb-1"
-            @button-click="showModal = true"
-            text="Search for Videos"
-          />
-        </div>
+      </div>
+      <div class="flex justify-center ">
+        <Button
+          class="px-2 py-1.5 mb-1"
+          @button-click="showModal = true"
+          text="Search for Videos"
+        />
       </div>
     </div>
     <Messages />
@@ -59,7 +59,9 @@
               v-model:value="searchVal"
               placeholder="Search"
             />
-            <button type="submit" class="ml-2">Search</button>
+            <button type="submit" class="ml-2 rounded-lg p-1.5 border-2">
+              Search
+            </button>
           </form>
           <button @click="closeModal()" class="">
             X
@@ -270,7 +272,7 @@ export default {
       //   .then((data) => {
       //     console.log(data);
       //   });https://dogewatch.herokuapp.com/
-      fetch(`http://192.168.1.6:8000/search?q=${this.searchVal}`)
+      fetch(`https://dogewatch.herokuapp.com/search?q=${this.searchVal}`)
         .then((res) => res.json())
         .then((data) => {
           console.log(data);
@@ -316,7 +318,7 @@ export default {
         console.log(`Updating to ${state.isAdmin}`);
         console.log(`Updating to ${state.videoID}`);
 
-        // this.cueVideo(state.videoID);
+        this.cueVideo(state.videoID);
         // if (!state.isAdmin) {
         //   this.cueVideo(state.videoID);
         //   console.log("initial state set.");
@@ -348,4 +350,21 @@ export default {
   },
 };
 </script>
-<style></style>
+<style>
+.embed-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  max-width: 100%;
+}
+.embed-container iframe,
+.embed-container object,
+.embed-container embed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+</style>

@@ -1,7 +1,7 @@
 <template>
   <form
     @submit.prevent="sendMessage"
-    class="flex flex-col border-2 rounded-lg p-2 m-2 "
+    class="flex flex-col justify-center border-2 rounded-lg p-2 m-2 "
   >
     <div
       style="height: 385px; max-width: 269px;"

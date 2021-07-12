@@ -2,4 +2,8 @@
   <router-view />
 </template>
 
-<style></style>
+<style>
+#app {
+  padding: 0.3rem !important;
+}
+</style>
