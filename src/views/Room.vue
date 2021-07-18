@@ -147,9 +147,16 @@ export default {
       }, 500);
       const clearTimer = () => clearInterval(timer);
     },
+    youtube_parser(url) {
+      var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+      var match = url.match(regExp);
+      return match && match[7].length == 11 ? match[7] : false;
+    },
     onSetVideoID() {
       // e.preventDefault();
-      let data = { videoID: this.inputVideoID };
+      let data = {
+        videoID: this.youtube_parser(this.inputVideoID) || this.inputVideoID,
+      };
       this.$socket.client.emit("setVideoData", data, (e) => {
         console.log(e);
       });
@@ -294,7 +301,7 @@ export default {
     videoID: (state) => state.videoID,
   }),
   mounted() {
-    if (this.username == null || this.roomID == null) {
+    if (this.username == undefined || this.roomID == undefined) {
       this.$router.push("/");
     }
 
@@ -340,14 +347,14 @@ export default {
   beforeUnmount() {
     this.unsubscribe();
   },
-  beforeRouteLeave(to, from, next) {
-    const answer = window.confirm("Do you really want to leave?");
-    if (answer) {
-      next();
-    } else {
-      next(false);
-    }
-  },
+  // beforeRouteLeave(to, from, next) {
+  //   const answer = window.confirm("Do you really want to leave?");
+  //   if (answer) {
+  //     next();
+  //   } else {
+  //     next(false);
+  //   }
+  // },
 };
 </script>
 <style>
