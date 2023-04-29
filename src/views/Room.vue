@@ -146,8 +146,7 @@ export default {
       const clearTimer = () => clearInterval(timer);
     },
     youtube_parser(url) {
-      var regExp =
-        /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+      var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
       var match = url.match(regExp);
       return match && match[7].length == 11 ? match[7] : false;
     },
@@ -279,7 +278,7 @@ export default {
       //     console.log(data);
       //   });https://dogewatch.herokuapp.com/
       fetch(
-        `https://petster-server-production.up.railway.app/search?q=${this.searchVal}`
+        `https://server-yt-watch-together-production.up.railway.app/search?q=${this.searchVal}`
       )
         .then((res) => res.json())
         .then((data) => {

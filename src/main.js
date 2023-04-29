@@ -14,7 +14,7 @@ import "./index.css";
 //   reconnectionAttempts: 5,
 //   reconnectionDelay: 1000,
 // });
-const socket = io("https://petster-server-production.up.railway.app/", {
+const socket = io("https://server-yt-watch-together-production.up.railway.app/", {
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
