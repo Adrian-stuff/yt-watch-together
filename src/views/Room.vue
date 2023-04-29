@@ -2,7 +2,7 @@
   <h1 v-if="!isPlayerReady" class="text-center text-4xl font-bold my-4">
     Loading...
   </h1>
-  <div class="flex sm:flex-row flex-col justify-center sm:items-center my-1 ">
+  <div class="flex sm:flex-row flex-col justify-center sm:items-center my-1">
     <div class="my-0 flex flex-col">
       <div class="flex flex-col justify-center items-center">
         <form
@@ -11,7 +11,7 @@
         >
           <input
             type="text"
-            class="border-2 rounded px-2 py-1 my-2 mx-1  w-52 "
+            class="border-2 rounded px-2 py-1 my-2 mx-1 w-52"
             v-model="inputVideoID"
             placeholder="Video ID/Link"
           />
@@ -41,7 +41,7 @@
         <h1 class="text-lg my-2 ml-2">Room: {{ roomID }}</h1>
         <p class="ml-2">please reload if you encountered iframe issues</p>
       </div>
-      <div class="flex justify-center ">
+      <div class="flex justify-center">
         <Button
           class="px-2 py-1.5 mb-1"
           @button-click="showModal = true"
@@ -63,13 +63,11 @@
               Search
             </button>
           </form>
-          <button @click="closeModal()" class="">
-            X
-          </button>
+          <button @click="closeModal()" class="">X</button>
         </div>
       </template>
       <template v-slot:body>
-        <div style="max-height: 500px" class="flex flex-col overflow-y-auto ">
+        <div style="max-height: 500px" class="flex flex-col overflow-y-auto">
           <div
             v-for="data in searchResults"
             :key="data.etag"
@@ -82,7 +80,7 @@
                   :alt="data.snippet.title"
                   class="mx-auto"
                 />
-                <div class="flex flex-col ">
+                <div class="flex flex-col">
                   <h1
                     v-html="data.snippet.title"
                     class="font-bold text-lg"
@@ -148,7 +146,8 @@ export default {
       const clearTimer = () => clearInterval(timer);
     },
     youtube_parser(url) {
-      var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+      var regExp =
+        /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
       var match = url.match(regExp);
       return match && match[7].length == 11 ? match[7] : false;
     },
@@ -279,7 +278,9 @@ export default {
       //   .then((data) => {
       //     console.log(data);
       //   });https://dogewatch.herokuapp.com/
-      fetch(`https://dogewatch.herokuapp.com/search?q=${this.searchVal}`)
+      fetch(
+        `https://petster-server-production.up.railway.app/search?q=${this.searchVal}`
+      )
         .then((res) => res.json())
         .then((data) => {
           console.log(data);
